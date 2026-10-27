@@ -1,0 +1,471 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Квестлог</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>[hidden]{display:none!important}</style>
+<style>
+/* Layout: колонка 480px в духе Telegram: верхняя панель, сгруппированные списки на скруглённых карточках,
+   круглые аватары-иконки, синий акцент, круглая кнопка добавления и нижняя панель вкладок. Светлая и тёмная темы. */
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --fg: #0f1114;
+  --mute: #6b7075;
+  --blue: #2481cc;
+  --on-blue: #ffffff;
+  --blue-t: rgba(36, 129, 204, .12);
+  --sep: #e4e6ea;
+  --fill: #e9ecef;
+  --green: #1f9d55;
+  --danger: #d93a35;
+  --coin: #f5b72b;
+  --toast-bg: rgba(28, 30, 34, .94);
+  --toast-fg: #ffffff;
+  --shadow: 0 1px 2px rgba(15, 17, 20, .06);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1621; --card: #17212b; --fg: #f5f7fa; --mute: #8596a8; --blue: #6ab3f3; --on-blue: #0b1a2a;
+    --blue-t: rgba(106, 179, 243, .16); --sep: #0e1621; --fill: #22303f; --green: #5fd08a; --danger: #ff7b73;
+    --toast-bg: rgba(245, 247, 250, .94); --toast-fg: #0e1621; --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1621; --card: #17212b; --fg: #f5f7fa; --mute: #8596a8; --blue: #6ab3f3; --on-blue: #0b1a2a;
+  --blue-t: rgba(106, 179, 243, .16); --sep: #0e1621; --fill: #22303f; --green: #5fd08a; --danger: #ff7b73;
+  --toast-bg: rgba(245, 247, 250, .94); --toast-fg: #0e1621; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.3; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--card); z-index: 10; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+svg { display: block; }
+.num { font-variant-numeric: tabular-nums; }
+
+#app { max-width: 480px; margin: 0 auto; padding-bottom: 150px; display: flex; flex-direction: column; gap: 14px; }
+
+/* top bar */
+.appbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-right, 0px))); background: var(--card); box-shadow: var(--shadow); padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.appbar h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+.chip-gold { display: inline-flex; align-items: center; gap: 7px; background: var(--blue-t); color: var(--fg); border-radius: 999px; padding: 6px 12px 6px 7px; font-weight: 600; font-size: 15px; }
+.coin { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe08a, var(--coin) 60%, #d99a14); display: inline-block; flex: none; }
+
+/* sections and grouped cards */
+.sec { margin: 6px 0 -4px; padding: 0 12px; color: var(--blue); font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; }
+.sec .m { color: var(--mute); font-weight: 400; }
+.group { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; margin: 0; padding: 0; list-style: none; }
+.group > li + li { border-top: 1px solid var(--sep); }
+.row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; }
+.name { font-weight: 600; font-size: 17px; overflow-wrap: anywhere; }
+.sub { color: var(--mute); font-size: 14px; margin-top: 2px; overflow-wrap: anywhere; }
+.right { text-align: right; }
+
+/* avatars */
+.av { --av: #3390ec; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--av) 70%, #fff), var(--av)); flex: none; }
+.av svg { width: 30px; height: 30px; }
+.av.sm { width: 40px; height: 40px; } .av.sm svg { width: 24px; height: 24px; }
+.av.lg { width: 92px; height: 92px; font-size: 38px; font-weight: 700; }
+.c-work { --av: #f0603f; } .c-study { --av: #3390ec; } .c-health { --av: #2fb462; } .c-home { --av: #8b5cf6; }
+.i-a { --av: #e8873a; } .i-b { --av: #d6477a; } .i-c { --av: #2f9fb4; } .i-d { --av: #e0a526; }
+
+/* summary card */
+.sum { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 14px; display: grid; gap: 10px; margin-top: 14px; }
+.sum-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sum-top b { font-size: 18px; }
+.meter { height: 8px; border-radius: 6px; background: var(--fill); overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: 6px; background: var(--blue); transition: width .4s; }
+.sum-cap { display: flex; justify-content: space-between; color: var(--mute); font-size: 13px; }
+
+/* quest */
+.quest { padding: 12px 14px 14px; display: grid; gap: 12px; transition: opacity .35s, transform .35s; }
+.quest.done { opacity: 0; transform: translateX(28px); }
+.quest .row { padding: 0; }
+.pct { font-size: 22px; font-weight: 700; }
+.pct small { font-size: 14px; color: var(--mute); font-weight: 600; }
+.prog { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.seg { height: 30px; border: 0; border-radius: 9px; background: var(--fill); color: var(--mute); font-size: 13px; font-weight: 600; padding: 0; }
+.seg.on { background: var(--blue); color: var(--on-blue); }
+.seg.next { background: var(--blue-t); color: var(--blue); }
+.seg:disabled { cursor: default; }
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.foot .sub { margin: 0; }
+.pill { border: 0; border-radius: 999px; background: var(--blue-t); color: var(--blue); font-weight: 600; font-size: 14px; padding: 8px 16px; }
+.pill:active { background: var(--blue); color: var(--on-blue); }
+.pill.solid { background: var(--blue); color: var(--on-blue); }
+.pill.solid:active { filter: brightness(.9); }
+.pill:disabled { background: var(--fill); color: var(--mute); cursor: not-allowed; filter: none; }
+
+/* fab */
+.fab-wrap { position: fixed; left: 0; right: 0; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; z-index: 6; }
+.fab-in { max-width: 480px; margin: 0 auto; display: flex; justify-content: flex-end; }
+.fab { pointer-events: auto; width: 58px; height: 58px; border-radius: 50%; border: 0; background: var(--blue); color: var(--on-blue); display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .28); }
+.fab:active { filter: brightness(.9); }
+.fab svg { width: 26px; height: 26px; }
+
+/* empty */
+.empty { text-align: center; display: grid; justify-items: center; gap: 8px; padding: 36px 20px; }
+.empty .av { width: 96px; height: 96px; margin-bottom: 6px; } .empty .av svg { width: 54px; height: 54px; }
+.empty h2 { margin: 0; font-size: 20px; }
+.empty p { margin: 0; color: var(--mute); max-width: 30ch; }
+.empty .pill { margin-top: 8px; }
+.hint { color: var(--mute); font-size: 14px; padding: 4px 12px; margin: 0; }
+
+/* hero */
+.profile { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 20px 14px 16px; display: grid; justify-items: center; gap: 4px; text-align: center; margin-top: 14px; }
+.profile h2 { margin: 8px 0 0; font-size: 22px; }
+.profile .meter { width: 100%; margin-top: 12px; }
+.profile .sum-cap { width: 100%; }
+.link-row { width: 100%; text-align: left; background: none; border: 0; padding: 14px; font-size: 16px; color: var(--danger); font-weight: 500; }
+.link-row.plain { color: var(--blue); }
+.val { font-weight: 700; font-size: 20px; }
+
+/* shop */
+.balance { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.balance .big { font-size: 34px; font-weight: 700; display: flex; align-items: center; gap: 10px; line-height: 1; }
+.balance .coin { width: 30px; height: 30px; }
+.sub .ok { color: var(--green); font-weight: 600; }
+.sub .need { color: var(--danger); }
+
+/* nav */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--sep); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); z-index: 7; }
+.nav-in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { background: none; border: 0; padding: 4px 2px; display: grid; justify-items: center; gap: 2px; color: var(--mute); font-size: 12px; font-weight: 500; }
+.tab svg { width: 26px; height: 26px; }
+.tab[aria-selected="true"] { color: var(--blue); }
+
+/* sheet */
+.scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 480px; background: var(--card); border-radius: 18px 18px 0 0; padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 16px; max-height: 94%; overflow-y: auto; }
+.grab { width: 38px; height: 4px; border-radius: 2px; background: var(--fill); margin: 0 auto; }
+.sheet h2 { margin: 0; font-size: 21px; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.lab { color: var(--blue); font-size: 14px; font-weight: 600; }
+.input { width: 100%; background: var(--bg); color: var(--fg); border: 2px solid transparent; border-radius: 12px; padding: 13px 14px; font-size: 16px; }
+.input:focus { border-color: var(--blue); outline: none; }
+.input.err { border-color: var(--danger); }
+.input::placeholder { color: var(--mute); }
+.err-msg { margin: 0; color: var(--danger); font-size: 14px; min-height: 1.3em; }
+.pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.opt { background: transparent; border: 2px solid transparent; border-radius: 14px; padding: 8px 2px; display: grid; justify-items: center; gap: 6px; font-size: 13px; color: var(--mute); }
+.opt[aria-checked="true"] { border-color: var(--blue); color: var(--fg); background: var(--blue-t); }
+.seg3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--fill); border-radius: 12px; padding: 3px; gap: 3px; }
+.seg3 button { background: transparent; border: 0; border-radius: 10px; padding: 8px 4px; display: grid; gap: 1px; font-size: 14px; font-weight: 600; color: var(--mute); }
+.seg3 button small { font-weight: 400; font-size: 12px; }
+.seg3.seg2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg3 button[aria-checked="true"] { background: var(--card); color: var(--fg); box-shadow: 0 1px 3px rgba(0, 0, 0, .18); }
+.cta { width: 100%; border: 0; border-radius: 12px; background: var(--blue); color: var(--on-blue); font-weight: 600; font-size: 16px; padding: 14px; }
+.cta:active { filter: brightness(.9); }
+.cta-2 { width: 100%; border: 0; background: none; color: var(--blue); font-weight: 500; padding: 4px; }
+
+/* toast */
+.toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); background: var(--toast-bg); color: var(--toast-fg); padding: 11px 18px; border-radius: 999px; z-index: 30; max-width: calc(100% - 32px); text-align: center; font-size: 15px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- четыре иконки категорий -->
+    <symbol id="i-sword" viewBox="0 0 48 48">
+      <g transform="rotate(45 24 24)">
+        <path d="M24 2 L29 8 V30 H19 V8 Z" fill="currentColor"/>
+        <path d="M24 10 V27" stroke="var(--av)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect x="11" y="30" width="26" height="4.5" rx="2.2" fill="currentColor"/>
+        <rect x="21" y="34.5" width="6" height="8" rx="1" fill="currentColor" opacity=".6"/>
+        <circle cx="24" cy="44.6" r="3" fill="currentColor"/>
+      </g>
+    </symbol>
+    <symbol id="i-scroll" viewBox="0 0 48 48">
+      <rect x="12" y="8" width="24" height="31" rx="2" fill="currentColor" opacity=".9"/>
+      <rect x="7" y="4" width="34" height="7" rx="3.5" fill="currentColor"/>
+      <rect x="7" y="37" width="34" height="7" rx="3.5" fill="currentColor"/>
+      <path d="M17 17 H31 M17 22 H31 M17 27 H26" stroke="var(--av)" stroke-width="2.2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-potion" viewBox="0 0 48 48">
+      <rect x="19" y="2.5" width="10" height="6" rx="1.5" fill="currentColor" opacity=".65"/>
+      <path d="M20.5 8 V17 L9 36 C7 41 10 45 15 45 H33 C38 45 41 41 39 36 L27.5 17 V8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M12.5 30 H35.5 L37.2 34 C38.6 39.5 36 42 32.5 42 H15.5 C12 42 9.4 39.5 10.8 34 Z" fill="currentColor"/>
+      <circle cx="19" cy="36.5" r="2" fill="var(--av)"/><circle cx="27.5" cy="35" r="1.4" fill="var(--av)"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 48 48">
+      <path d="M24 3 L41 9.5 V24 C41 34 34 41.5 24 45.5 C14 41.5 7 34 7 24 V9.5 Z" fill="currentColor"/>
+      <rect x="21.5" y="14" width="5" height="21" rx="1.2" fill="var(--av)"/>
+      <rect x="15" y="20" width="18" height="5" rx="1.2" fill="var(--av)"/>
+    </symbol>
+    <!-- вкладки -->
+    <symbol id="t-quests" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M7.8 12.4 L10.8 15.3 L16.4 9.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="t-hero" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M4.5 20.5 c.8-4 3.6-6 7.5-6 s6.7 2 7.5 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="t-shop" viewBox="0 0 24 24"><path d="M5 8 H19 L20 20.5 H4 Z M9 8 V6.5 a3 3 0 0 1 6 0 V8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="t-log" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 7 V12 L15.5 14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5 V19 M5 12 H19" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <!-- награды лавки -->
+    <symbol id="r-cup" viewBox="0 0 24 24"><path d="M5 9 H17 V15 a5 5 0 0 1-5 5 h-2 a5 5 0 0 1-5-5 Z M17 10.5 h1.5 a2.5 2.5 0 0 1 0 5 H17 M8 3.5 V6 M12 3.5 V6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="r-play" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M10 9 L15 12 L10 15 Z" fill="currentColor"/></symbol>
+    <symbol id="r-pad" viewBox="0 0 24 24"><path d="M7 8 H17 a5 5 0 0 1 4.8 6.4 l-.8 2.6 a2.4 2.4 0 0 1-4 .8 L15 15.5 H9 L7 17.8 a2.4 2.4 0 0 1-4-.8 l-.8-2.6 A5 5 0 0 1 7 8 Z M8 10.5 V13.5 M6.5 12 H9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="11.2" r="1" fill="currentColor"/><circle cx="18" cy="13.2" r="1" fill="currentColor"/></symbol>
+    <symbol id="r-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 3 V5 M12 19 V21 M3 12 H5 M19 12 H21 M5.6 5.6 L7 7 M17 17 L18.4 18.4 M5.6 18.4 L7 17 M17 7 L18.4 5.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div id="app"></div>
+<div class="fab-wrap" id="fab"></div>
+<nav class="nav" aria-label="Разделы"><div class="nav-in" role="tablist" id="nav"></div></nav>
+<div class="scrim" id="scrim" hidden></div>
+<div id="toast-host" aria-live="polite"></div>
+
+<script>
+(function () {
+  var KEY = "questlog.v3";
+  var CATS = {
+    work:   { name: "Работа",   icon: "sword" },
+    study:  { name: "Учёба",    icon: "scroll" },
+    health: { name: "Здоровье", icon: "potion" },
+    home:   { name: "Дом",      icon: "shield" }
+  };
+  /* награда за весь квест; выдаётся по шагам готовности (по 25%) */
+  var DIFF = {
+    1: { name: "Лёгкий",  xp: 20, gold: 8 },
+    2: { name: "Средний", xp: 40, gold: 16 },
+    3: { name: "Тяжёлый", xp: 80, gold: 32 }
+  };
+  var SHOP = [
+    { id: "coffee", name: "Чашка хорошего кофе", note: "Награда за один закрытый квест", price: 30,  icon: "r-cup",  tone: "i-a" },
+    { id: "series", name: "Серия вечером",       note: "Одна серия без чувства вины",    price: 80,  icon: "r-play", tone: "i-b" },
+    { id: "game",   name: "Час игры",            note: "Любая игра, час времени",        price: 120, icon: "r-pad",  tone: "i-c" },
+    { id: "day",    name: "Выходной от квестов", note: "День без новых задач",           price: 300, icon: "r-sun",  tone: "i-d" }
+  ];
+  var RANKS = ["Новичок", "Ученик", "Странник", "Воин", "Мастер", "Легенда"];
+  var TABS = [
+    { id: "quests", name: "Квесты", icon: "t-quests" },
+    { id: "hero",   name: "Герой",  icon: "t-hero" },
+    { id: "shop",   name: "Лавка",  icon: "t-shop" },
+    { id: "log",    name: "Журнал", icon: "t-log" }
+  ];
+
+  var seed = function () {
+    return {
+      xp: 20, gold: 8, inv: {}, spent: 0, nextId: 5,
+      quests: [
+        { id: 1, title: "Отправить отчёт по лабораторной", cat: "work",   diff: 2, progress: 0,  done: false },
+        { id: 2, title: "Прочитать главу про ViewModel",   cat: "study",  diff: 2, progress: 50, done: false },
+        { id: 3, title: "Прогулка 30 минут",                cat: "health", diff: 1, progress: 0,  done: false },
+        { id: 4, title: "Разобрать стол и вынести мусор",   cat: "home",   diff: 1, mode: "instant", progress: 0,  done: false }
+      ]
+    };
+  };
+  var state = load();
+  var tab = "quests";
+  var form = { title: "", cat: "work", diff: 2, mode: "steps", error: "" };
+  var confirmReset = false;
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var s = JSON.parse(raw); if (s && s.quests) return s; }
+    } catch (e) {}
+    return seed();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function level() { return Math.floor(state.xp / 100) + 1; }
+  function icon(id) { return '<svg aria-hidden="true"><use href="#' + id + '"/></svg>'; }
+  function av(cat, cls) { return '<div class="av c-' + cat + (cls ? " " + cls : "") + '">' + icon("i-" + CATS[cat].icon) + "</div>"; }
+  function plural(n, a, b, c) { var m = n % 100, k = n % 10; if (m > 10 && m < 20) return c; if (k === 1) return a; if (k > 1 && k < 5) return b; return c; }
+  function earned(q, key) { return Math.round(DIFF[q.diff][key] * (q.progress || 0) / 100); }
+  function item(id) { return SHOP.filter(function (x) { return x.id === id; })[0]; }
+  function bar(into) { return '<div class="meter" role="progressbar" aria-label="Опыт до следующего уровня" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + into + '"><i style="width:' + into + '%"></i></div>'; }
+  function appbar(title) { return '<header class="appbar"><h1>' + title + '</h1><span class="chip-gold num" aria-label="Золото"><span class="coin"></span>' + state.gold + "</span></header>"; }
+  function summary() {
+    var into = state.xp % 100;
+    return '<section class="sum" aria-label="Прогресс героя"><div class="sum-top"><b>Уровень ' + level() + '</b><span class="num" style="color:var(--mute)">' + into + " / 100 опыта</span></div>" + bar(into) +
+      '<div class="sum-cap num"><span>' + RANKS[Math.min(level() - 1, RANKS.length - 1)] + "</span><span>до уровня " + (level() + 1) + ": " + (100 - into) + "</span></div></section>";
+  }
+
+  /* ---------- views ---------- */
+  function viewQuests() {
+    var act = state.quests.filter(function (q) { return !q.done; });
+    var h = appbar("Квесты") + summary();
+    if (!act.length) {
+      return h + '<div class="empty"><div class="av c-home">' + icon("i-shield") + "</div><h2>Все квесты закрыты</h2><p>Возьмите новое задание или потратьте золото в лавке.</p><button class=\"pill solid\" data-a=\"open-add\">Новый квест</button></div>";
+    }
+    h += '<div class="sec"><span>В работе</span><span class="m num">' + act.length + "</span></div><ul class=\"group\">";
+    act.forEach(function (q) {
+      var d = DIFF[q.diff], p = q.progress || 0, stage = p / 25, instant = q.mode === "instant", next = instant ? 100 : Math.min(p + 25, 100);
+      h += '<li class="quest" data-id="' + q.id + '"><div class="row">' + av(q.cat) +
+        '<div><div class="name">' + esc(q.title) + '</div><div class="sub">' + CATS[q.cat].name + " · " + d.name + (instant ? " · сразу" : "") + '</div></div>' + (instant ? "<div></div>" : '<div class="pct num">' + p + "<small>%</small></div>") + "</div>" +
+        (instant ? "" : '<div class="prog" role="group" aria-label="Готовность: ' + p + ' процентов">');
+      for (var i = 1; !instant && i <= 4; i++) {
+        var cls = "seg" + (i <= stage ? " on" : (i === stage + 1 ? " next" : ""));
+        h += '<button class="' + cls + '" data-a="set" data-id="' + q.id + '" data-p="' + (i * 25) + '"' + (i <= stage ? " disabled" : "") +
+          ' aria-label="' + (i === 4 ? "Завершить квест" : "Готовность " + i * 25 + " процентов") + '">' + i * 25 + "%</button>";
+      }
+      h += (instant ? "" : "</div>") + '<div class="foot"><div class="sub num">' +
+        (instant ? "Награда: " + d.xp + " оп. · " + d.gold + " зол." : "Опыт " + earned(q, "xp") + " из " + d.xp + " · золото " + earned(q, "gold") + " из " + d.gold) + "</div>" +
+        '<button class="pill' + (instant ? " solid" : "") + '" data-a="set" data-id="' + q.id + '" data-p="' + next + '">' + (instant ? "Выполнить" : next === 100 ? "Завершить" : "Шаг +25%") + "</button></div></li>";
+    });
+    return h + "</ul>";
+  }
+
+  function viewHero() {
+    var into = state.xp % 100, rank = RANKS[Math.min(level() - 1, RANKS.length - 1)];
+    var counts = { work: 0, study: 0, health: 0, home: 0 }, total = 0;
+    state.quests.forEach(function (q) { if (q.done) { counts[q.cat]++; total++; } });
+    var h = appbar("Герой");
+    h += '<section class="profile"><div class="av lg c-study num">' + level() + '</div><h2>' + rank + '</h2><div class="sub">Закрыто квестов: <span class="num">' + total + "</span> · потрачено наград: <span class=\"num\">" + (state.spent || 0) + "</span></div>" +
+      bar(into) + '<div class="sum-cap num"><span>' + state.xp + " опыта всего</span><span>до уровня " + (level() + 1) + ": " + (100 - into) + "</span></div></section>";
+    h += '<div class="sec"><span>Подвиги по категориям</span></div><ul class="group">';
+    Object.keys(CATS).forEach(function (k) {
+      h += '<li class="row">' + av(k, "sm").replace('class="av', 'class="av') + '<div class="name">' + CATS[k].name + '</div><div class="val num">' + counts[k] + "</div></li>";
+    });
+    h += '</ul><ul class="group"><li>' + (confirmReset
+      ? '<button class="link-row" data-a="reset-yes">Да, стереть весь прогресс</button></li><li><button class="link-row plain" data-a="reset-no">Отмена</button>'
+      : '<button class="link-row" data-a="reset">Сбросить прогресс</button>') + "</li></ul>";
+    return h;
+  }
+
+  function viewShop() {
+    var h = appbar("Лавка");
+    h += '<section class="balance"><div><div class="sub" style="margin:0 0 6px">Баланс</div><div class="big num"><span class="coin"></span>' + state.gold + '</div></div><div class="sub right">Золото даётся<br>за шаги квестов</div></section>';
+    h += '<div class="sec"><span>Мои награды</span></div>';
+    var owned = SHOP.filter(function (it) { return (state.inv[it.id] || 0) > 0; });
+    if (!owned.length) {
+      h += '<p class="hint">Здесь появятся купленные награды. Нажмите «Потратить», когда решите отдохнуть.</p>';
+    } else {
+      h += '<ul class="group">';
+      owned.forEach(function (it) {
+        var n = state.inv[it.id];
+        h += '<li class="row"><div class="av sm ' + it.tone + '">' + icon(it.icon) + '</div><div><div class="name">' + it.name + '</div><div class="sub">В наличии: <span class="ok num">' + n + '</span></div></div>' +
+          '<button class="pill solid" data-a="spend" data-id="' + it.id + '">Потратить</button></li>';
+      });
+      h += "</ul>";
+    }
+    h += '<div class="sec"><span>Магазин</span></div><ul class="group">';
+    SHOP.forEach(function (it) {
+      var can = state.gold >= it.price;
+      h += '<li class="row"><div class="av sm ' + it.tone + '">' + icon(it.icon) + '</div><div><div class="name">' + it.name + '</div><div class="sub">' + it.note + (can ? "" : ' · <span class="need num">не хватает ' + (it.price - state.gold) + "</span>") + "</div></div>" +
+        '<button class="pill' + (can ? "" : "") + ' num" data-a="buy" data-id="' + it.id + '"' + (can ? "" : " disabled") + ">Купить · " + it.price + "</button></li>";
+    });
+    return h + "</ul>";
+  }
+
+  function viewLog() {
+    var done = state.quests.filter(function (q) { return q.done; }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
+    var h = appbar("Журнал");
+    if (!done.length) {
+      return h + '<div class="empty"><div class="av c-study">' + icon("i-scroll") + "</div><h2>Журнал пуст</h2><p>Закрытые квесты появятся здесь.</p><button class=\"pill solid\" data-a=\"go-quests\">К квестам</button></div>";
+    }
+    h += '<div class="sec" style="margin-top:14px"><span>Выполнено</span><span class="m num">' + done.length + "</span></div><ul class=\"group\">";
+    done.forEach(function (q) {
+      var d = DIFF[q.diff], dt = q.doneAt ? new Date(q.doneAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) : "";
+      h += '<li class="row">' + av(q.cat) + '<div><div class="name">' + esc(q.title) + '</div><div class="sub">' + CATS[q.cat].name + " · " + dt + '</div></div><div class="right num" style="color:var(--green);font-weight:600">+' + d.xp + "</div></li>";
+    });
+    return h + "</ul>";
+  }
+
+  function render() {
+    var views = { quests: viewQuests, hero: viewHero, shop: viewShop, log: viewLog };
+    document.getElementById("app").innerHTML = views[tab]();
+    document.getElementById("nav").innerHTML = TABS.map(function (t) {
+      return '<button class="tab" role="tab" data-a="tab" data-id="' + t.id + '" aria-selected="' + (t.id === tab) + '">' + icon(t.icon) + "<span>" + t.name + "</span></button>";
+    }).join("");
+    document.getElementById("fab").innerHTML = tab === "quests" ? '<div class="fab-in"><button class="fab" data-a="open-add" aria-label="Новый квест">' + icon("i-plus") + "</button></div>" : "";
+  }
+
+  /* ---------- add sheet ---------- */
+  function renderSheet() {
+    var s = document.getElementById("scrim");
+    var h = '<form class="sheet" id="qform" novalidate role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="grab"></div><h2 id="sh-t">Новый квест</h2>' +
+      '<div class="field"><label class="lab" for="q-title">Название</label><input class="input' + (form.error ? " err" : "") + '" id="q-title" maxlength="60" autocomplete="off" placeholder="Например, сдать лабораторную" value="' + esc(form.title) + '" aria-describedby="q-err"' + (form.error ? ' aria-invalid="true"' : "") + '><p class="err-msg" id="q-err" role="alert">' + esc(form.error) + "</p></div>" +
+      '<div class="field"><span class="lab">Категория</span><div class="pick" role="radiogroup" aria-label="Категория">';
+    Object.keys(CATS).forEach(function (k) {
+      h += '<button type="button" class="opt" role="radio" aria-checked="' + (form.cat === k) + '" data-a="f-cat" data-id="' + k + '">' + av(k, "sm") + CATS[k].name + "</button>";
+    });
+    h += '</div></div><div class="field"><span class="lab">Сложность</span><div class="seg3" role="radiogroup" aria-label="Сложность">';
+    [1, 2, 3].forEach(function (n) {
+      h += '<button type="button" role="radio" aria-checked="' + (form.diff === n) + '" data-a="f-diff" data-id="' + n + '">' + DIFF[n].name + '<small class="num">' + DIFF[n].xp + " оп. · " + DIFF[n].gold + " зол.</small></button>";
+    });
+    h += '</div></div><div class="field"><span class="lab">Как закрывать</span><div class="seg3 seg2" role="radiogroup" aria-label="Как закрывать">' +
+      '<button type="button" role="radio" aria-checked="' + (form.mode === "steps") + '" data-a="f-mode" data-id="steps">С заполнением<small>Шкала 25 / 50 / 75 / 100%</small></button>' +
+      '<button type="button" role="radio" aria-checked="' + (form.mode === "instant") + '" data-a="f-mode" data-id="instant">Сразу<small>Одно нажатие, вся награда</small></button></div></div>' +
+      '<button type="submit" class="cta">Создать квест</button><button type="button" class="cta-2" data-a="close-add">Отмена</button></form>';
+    s.innerHTML = h;
+  }
+  function openSheet() { form = { title: "", cat: "work", diff: 2, mode: "steps", error: "" }; renderSheet(); document.getElementById("scrim").hidden = false; setTimeout(function () { var i = document.getElementById("q-title"); if (i) i.focus(); }, 30); }
+  function closeSheet() { document.getElementById("scrim").hidden = true; }
+
+  /* ---------- toast ---------- */
+  var toastTimer;
+  function toast(msg) {
+    var host = document.getElementById("toast-host");
+    host.innerHTML = '<div class="toast">' + esc(msg) + "</div>";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { host.innerHTML = ""; }, 2400);
+  }
+
+  /* ---------- actions ---------- */
+  function setProgress(id, p, el) {
+    var q = state.quests.filter(function (x) { return x.id === id; })[0];
+    if (!q || q.done || p <= (q.progress || 0)) return;
+    p = Math.min(p, 100);
+    var before = level(), d = DIFF[q.diff], delta = (p - (q.progress || 0)) / 100;
+    var gx = Math.round(d.xp * delta), gg = Math.round(d.gold * delta);
+    q.progress = p; state.xp += gx; state.gold += gg;
+    var finished = p >= 100;
+    if (finished) { q.done = true; q.doneAt = Date.now(); }
+    save();
+    toast(level() > before ? "Новый уровень: " + level() + "!" : (finished ? "Квест закрыт: " : "Готовность " + p + "%: ") + "+" + gx + " оп., +" + gg + " зол.");
+    if (finished && el) { el.classList.add("done"); setTimeout(render, 350); } else render();
+  }
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-a]");
+    if (!t || t.disabled) { return; }
+    var a = t.getAttribute("data-a"), id = t.getAttribute("data-id");
+    if (a === "tab") { tab = id; confirmReset = false; render(); window.scrollTo(0, 0); }
+    else if (a === "go-quests") { tab = "quests"; render(); }
+    else if (a === "set") { setProgress(Number(id), Number(t.getAttribute("data-p")), t.closest(".quest")); }
+    else if (a === "open-add") openSheet();
+    else if (a === "close-add") closeSheet();
+    else if (a === "f-cat") { form.title = document.getElementById("q-title").value; form.cat = id; renderSheet(); }
+    else if (a === "f-diff") { form.title = document.getElementById("q-title").value; form.diff = Number(id); renderSheet(); }
+    else if (a === "f-mode") { form.title = document.getElementById("q-title").value; form.mode = id; renderSheet(); }
+    else if (a === "buy") {
+      var it = item(id);
+      if (it && state.gold >= it.price) { state.gold -= it.price; state.inv[id] = (state.inv[id] || 0) + 1; save(); toast("Куплено: " + it.name); render(); }
+    }
+    else if (a === "spend") {
+      var sp = item(id);
+      if (sp && (state.inv[id] || 0) > 0) { state.inv[id]--; state.spent = (state.spent || 0) + 1; save(); toast("Потрачено: " + sp.name + ". Приятного отдыха!"); render(); }
+    }
+    else if (a === "reset") { confirmReset = true; render(); }
+    else if (a === "reset-no") { confirmReset = false; render(); }
+    else if (a === "reset-yes") { state = seed(); confirmReset = false; save(); render(); toast("Прогресс сброшен"); }
+  });
+
+  document.getElementById("scrim").addEventListener("click", function (e) { if (e.target.id === "scrim") closeSheet(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+
+  document.getElementById("scrim").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = document.getElementById("q-title").value.trim();
+    form.title = v;
+    if (v.length < 3) {
+      form.error = v ? "Название слишком короткое, нужно от 3 символов." : "Введите название квеста.";
+      renderSheet(); document.getElementById("q-title").focus(); return;
+    }
+    state.quests.push({ id: state.nextId++, title: v, cat: form.cat, diff: form.diff, mode: form.mode, progress: 0, done: false });
+    save(); closeSheet(); tab = "quests"; render(); toast("Квест добавлен");
+  });
+
+  render();
+})();
+</script>

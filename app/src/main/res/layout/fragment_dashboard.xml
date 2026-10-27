@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tvGreeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Привет, Герой!"
+            android:textColor="@color/text_primary"
+            android:textSize="24sp" />
+
+        <!-- Баланс -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/surface_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Текущее золото"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvGold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 G"
+                android:textColor="@color/primary_gold"
+                android:textSize="36sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Переключатель Магазин / Инвентарь -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnTabShop"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="@color/primary_gold"
+                android:text="Магазин"
+                android:textColor="@color/bg_dark" />
+
+            <Button
+                android:id="@+id/btnTabInventory"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/surface_dark"
+                android:text="Инвентарь"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- МАГАЗИН -->
+        <LinearLayout
+            android:id="@+id/layoutShop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <!-- Кофе -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Чашка кофе"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnBuyCoffee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/primary_gold"
+                    android:text="20 G"
+                    android:textColor="@color/bg_dark" />
+            </LinearLayout>
+
+            <!-- Час игры -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Час игры"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnBuyGaming"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/primary_gold"
+                    android:text="25 G"
+                    android:textColor="@color/bg_dark" />
+            </LinearLayout>
+
+            <!-- Выходной -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Выходной от квестов"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnBuyDayOff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/primary_gold"
+                    android:text="100 G"
+                    android:textColor="@color/bg_dark" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ИНВЕНТАРЬ -->
+        <LinearLayout
+            android:id="@+id/layoutInventory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone"> <!-- Скрыт по умолчанию -->
+
+            <!-- Кофе в инвентаре -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tvInvCoffee"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Чашка кофе (в наличии: 0)"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnUseCoffee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/surface_dark"
+                    android:text="Выпить"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <!-- Час игры в инвентаре -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tvInvGaming"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Час игры (в наличии: 0)"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnUseGaming"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/surface_dark"
+                    android:text="Играть"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <!-- Выходной в инвентаре -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/surface_dark"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tvInvDayOff"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Выходной от квестов (в наличии: 0)"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+                <Button
+                    android:id="@+id/btnUseDayOff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/surface_dark"
+                    android:text="Активировать"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnToArchive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/surface_dark"
+            android:text="Открыть Архив"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
+</ScrollView>
